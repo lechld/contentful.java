@@ -1,9 +1,6 @@
 package com.contentful.java.cda.rich;
 
-import com.contentful.java.cda.ArrayResource;
-import com.contentful.java.cda.CDAClient;
-import com.contentful.java.cda.CDAEntry;
-import com.contentful.java.cda.CDAField;
+import com.contentful.java.cda.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -270,7 +267,7 @@ public class RichTextFactory {
       for (CDAField field : entry.contentType().fields()) {
         if ("RichText".equals(field.type())) {
           resolveRichDocument(entry, field);
-          resolveRichLink(array, entry, field);
+          resolveRichLink(array, entry, field, client.getContentTypeIdProvider(), client.getAssetChecker());
         }
       }
     }
@@ -347,7 +344,9 @@ public class RichTextFactory {
    * @param entry the entry to be completed.
    * @param field the field pointing to a link.
    */
-  private static void resolveRichLink(ArrayResource array, CDAEntry entry, CDAField field) {
+  private static void resolveRichLink(ArrayResource array, CDAEntry entry, CDAField field,
+                                      SyncContentTypeIdProvider contentTypeIdProvider,
+                                      SyncAssetValidityChecker assetChecker) {
     final Map<String, Object> rawValue = (Map<String, Object>) entry.rawFields().get(field.id());
     if (rawValue == null) {
       return;
@@ -356,7 +355,7 @@ public class RichTextFactory {
     for (final String locale : rawValue.keySet()) {
       final CDARichDocument document = entry.getField(locale, field.id());
       for (final CDARichNode node : document.getContent()) {
-        resolveOneLink(array, field, locale, node);
+        resolveOneLink(array, field, locale, node, contentTypeIdProvider, assetChecker);
       }
     }
   }
@@ -370,7 +369,8 @@ public class RichTextFactory {
    * @param node   the node build from the response.
    */
   private static void resolveOneLink(ArrayResource array, CDAField field, String locale,
-                                     CDARichNode node) {
+                                     CDARichNode node, SyncContentTypeIdProvider contentTypeIdProvider,
+                                     SyncAssetValidityChecker assetChecker) {
     if (node instanceof CDARichHyperLink
         && ((CDARichHyperLink) node).data instanceof Map) {
       final CDARichHyperLink link = (CDARichHyperLink) node;
@@ -385,9 +385,20 @@ public class RichTextFactory {
           final String id = (String) sys.get("id");
 
           if ("Asset".equals(linkType)) {
-            link.data = array.assets().get(id);
+            CDAAsset asset = array.assets().get(id);
+            if (asset == null && assetChecker.isValidAsset(id)) {
+              asset = CDAResourceFaker.getFakeAsset(id);
+            }
+            link.data = asset;
           } else if ("Entry".equals(linkType)) {
-            link.data = array.entries().get(id);
+            CDAEntry entry = array.entries().get(id);
+            if (entry == null && !data.containsKey("uri")) {
+              String contentTypeId = contentTypeIdProvider.getContentTypeId(id);
+              if (contentTypeId != null) {
+                entry = CDAResourceFaker.getFakeEntry(id, contentTypeId);
+              }
+            }
+            link.data = entry;
           }
 
         } else {
@@ -400,7 +411,7 @@ public class RichTextFactory {
       }
     } else if (node instanceof CDARichParagraph) {
       for (final CDARichNode child : ((CDARichParagraph) node).getContent()) {
-        resolveOneLink(array, field, locale, child);
+        resolveOneLink(array, field, locale, child, contentTypeIdProvider, assetChecker);
       }
     }
   }
