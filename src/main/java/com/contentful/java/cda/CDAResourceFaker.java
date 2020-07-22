@@ -8,7 +8,7 @@ import java.util.HashMap;
 public class CDAResourceFaker {
 
     @NonNull
-    static CDAAsset getFakeAsset(@NonNull String id) {
+    public static CDAAsset getFakeAsset(@NonNull String id) {
         final CDAAsset asset = new CDAAsset();
 
         asset.fields = new HashMap<>();
@@ -20,7 +20,7 @@ public class CDAResourceFaker {
     }
 
     @NonNull
-    static CDAEntry getFakeEntry(@NonNull String id, @NonNull String contentTypeId) {
+    public static CDAEntry getFakeEntry(@NonNull String id, @NonNull String contentTypeId) {
         final CDAEntry entry = new CDAEntry();
         final CDAContentType contentType = new CDAContentType();
 

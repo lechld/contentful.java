@@ -96,6 +96,14 @@ public class CDAClient {
     this.assetChecker = builder.assetChecker;
   }
 
+  public SyncContentTypeIdProvider getContentTypeIdProvider() {
+    return contentTypeIdProvider;
+  }
+
+  public SyncAssetValidityChecker getAssetChecker() {
+    return assetChecker;
+  }
+
   private void validate(Builder builder) {
     checkNotNull(builder.space, "Space ID must be provided.");
     checkNotNull(builder.environment, "Environment ID must not be null.");
