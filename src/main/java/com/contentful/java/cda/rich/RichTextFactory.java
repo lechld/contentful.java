@@ -354,6 +354,9 @@ public class RichTextFactory {
 
     for (final String locale : rawValue.keySet()) {
       final CDARichDocument document = entry.getField(locale, field.id());
+      if (document == null) {
+        continue;
+      }
       for (final CDARichNode node : document.getContent()) {
         resolveOneLink(array, field, locale, node, contentTypeIdProvider, assetChecker);
       }
