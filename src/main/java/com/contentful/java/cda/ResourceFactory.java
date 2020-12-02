@@ -60,7 +60,10 @@ final class ResourceFactory {
       ResourceUtils.mapResources(oldSpace.items(), assets, entries);
     }
 
+    long startIterate = System.currentTimeMillis();
     SynchronizedSpace result = ResourceUtils.iterate(newSpace, client);
+    long endIterate = System.currentTimeMillis() - startIterate;
+
     ResourceUtils.mapResources(result.items(), assets, entries);
     ResourceUtils.mapDeletedResources(result);
 
@@ -71,9 +74,17 @@ final class ResourceFactory {
     result.assets = assets;
     result.entries = entries;
 
+    long startRawFields = System.currentTimeMillis();
     ResourceUtils.setRawFields(result);
+    long endRawFields = System.currentTimeMillis() - startRawFields;
+
+    long startResolveRichText = System.currentTimeMillis();
     resolveRichTextField(result, client);
+    long endResolveRichText = System.currentTimeMillis() - startResolveRichText;
+
+    long startResolveLinks = System.currentTimeMillis();
     ResourceUtils.resolveLinks(result, client);
+    long endResolveLinks = System.currentTimeMillis() - startResolveLinks;
 
     return result;
   }

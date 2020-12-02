@@ -27,6 +27,8 @@ public final class ResourceUtils {
   }
 
   static SynchronizedSpace iterate(Response<SynchronizedSpace> spaceResponse, CDAClient client) {
+    long start = System.currentTimeMillis();
+
     SynchronizedSpace space = ResourceFactory.fromResponse(spaceResponse);
     List<CDAResource> items = space.items;
     while (true) {
@@ -37,6 +39,9 @@ public final class ResourceUtils {
       items.addAll(nextSpace.items());
       space = nextSpace;
     }
+
+    long end = System.currentTimeMillis() - start;
+
     space.items = items;
     localizeResources(space.items(), client.cache);
     return space;
