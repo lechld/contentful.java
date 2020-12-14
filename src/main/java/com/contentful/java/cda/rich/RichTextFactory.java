@@ -2,10 +2,7 @@ package com.contentful.java.cda.rich;
 
 import com.contentful.java.cda.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.contentful.java.cda.ResourceUtils.ensureContentType;
 
@@ -261,18 +258,29 @@ public class RichTextFactory {
    * @param array  the array to be walked.
    * @param client the client to be used if updating of types is needed.
    */
-  public static void resolveRichTextField(ArrayResource array, CDAClient client) {
+  public static Map<String, Long> resolveRichTextField(ArrayResource array, CDAClient client) {
+    Map<String, Long> result = new HashMap<String, Long>();
+
     for (CDAEntry entry : array.entries().values()) {
       ensureContentType(entry, client);
+
+      long start = System.currentTimeMillis();
+
       for (CDAField field : entry.contentType().fields()) {
         if ("RichText".equals(field.type())) {
           resolveRichDocument(entry, field);
           resolveRichLink(array, entry, field, client.getContentTypeIdProvider(), client.getAssetChecker());
         }
       }
-    }
-  }
 
+      long end = System.currentTimeMillis() - start;
+      result.put( entry.id(), end);
+
+      return result;
+    }
+
+    return result;
+  }
   /**
    * Resolve all children of the top most document block.
    *

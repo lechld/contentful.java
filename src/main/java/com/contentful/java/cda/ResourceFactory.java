@@ -79,7 +79,8 @@ final class ResourceFactory {
     long endRawFields = System.currentTimeMillis() - startRawFields;
 
     long startResolveRichText = System.currentTimeMillis();
-    resolveRichTextField(result, client);
+    Map<String, Long> entryToMillis = resolveRichTextField(result, client);
+
     long endResolveRichText = System.currentTimeMillis() - startResolveRichText;
 
     long startResolveLinks = System.currentTimeMillis();
